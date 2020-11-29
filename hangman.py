@@ -76,8 +76,7 @@ class Hangman:
     
     def create_secret_word(self):
         rw=RandomWords()
-        #self.picked_word=rw.random_word().upper()
-        self.picked_word="HANGMAN"
+        self.picked_word=rw.random_word().upper()
         return self.picked_word
     
     def format_secret_word(self):
