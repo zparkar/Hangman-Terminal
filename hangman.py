@@ -18,7 +18,7 @@ class Hangman:
         self.guessed_correct=0
         self.guessed_incorrect=0
         self.guessed_word=""
-        self.options=['Normal','Hard', 'Hardest']
+        self.options=['Normal','Hard (score is doubled)', 'Hardest (score is tripled!)']
         self.hangman_pics= ['''
                          +---+
                              |
@@ -55,6 +55,8 @@ class Hangman:
                         /|\  |
                         / \  |
                         ===''']
+        self.wins=0
+        self.score=0
     
     def choose_difficuly(self):
         print("\nPlease choose Difficulty:")
@@ -74,7 +76,8 @@ class Hangman:
     
     def create_secret_word(self):
         rw=RandomWords()
-        self.picked_word=rw.random_word().upper()
+        #self.picked_word=rw.random_word().upper()
+        self.picked_word="HANGMAN"
         return self.picked_word
     
     def format_secret_word(self):
@@ -107,6 +110,8 @@ class Hangman:
                  if self.guessed_correct==len((self.secret_word)):
                      print(self.picked_word)
                      print("\nCongratulations! You won!")
+                     self.wins+=1
+                     self.scoreboard()
                      break
          
                  else:
@@ -122,6 +127,13 @@ class Hangman:
      
         if self.tries==0:
             print(f"\nGame over! The word was '{self.picked_word}'. ")
+            
+    def scoreboard(self):
+        self.score = int(self.difficulty * len(self.secret_word) * self.wins)
+
+        
+        
+    
             
     
     
