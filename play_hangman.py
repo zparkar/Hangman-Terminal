@@ -18,8 +18,10 @@ import datetime
 
 input_flag=False
 input_flag2=False
-scores = {'name':[],'score':[]}
+scores = {'name':[],'score':[], 'date':[], 'games played':[], 'Most played difficulty':[]}
 score_counter=0
+games_played=1
+difficulties=[]
 print("Welcome to Hangman!")
 
 while input_flag==False:
@@ -40,19 +42,28 @@ while input_flag==False:
             game.display_message()
             game.play_game()
             score_counter+=game.score
-            play_again=input("Would you like to play again? (yes to play or any key to quit): ")
-        
+            difficulties.append(game.difficulty)
+            play_again=input("Would you like to play again? (yes to play or any key to quit): ")    
             if play_again.lower()=="yes":
+                games_played+=1
                 continue
             
             else:
                  scores['name'] = name.title()
                  scores['score'] = score_counter
                  scores['date'] = datetime.datetime.now()
+                 scores['games played'] = games_played
+                 most_played_difficulty = max(set(difficulties), key=difficulties.count)
+                 if most_played_difficulty == 1 :
+                     scores['Most played difficulty'] = "Normal"
+                 elif most_played_difficulty == 2:
+                     scores['Most played difficulty'] =  "Hard"
+                 elif most_played_difficulty == 3:
+                     scores['Most played difficulty'] =  "Hardest"
                  try:
                      wb = load_workbook("hangman_scores.xlsx")
                      sheet = wb['Sheet1']
-                     new_row = [f"{scores['name']}", f"{scores['score']}", f"{scores['date']}"]    
+                     new_row = [f"{scores['name']}", f"{scores['score']}", f"{scores['date']}",games_played,f"{scores['Most played difficulty']}"]    
                      sheet.append(new_row)
                      wb.save("hangman_scores.xlsx")
                  except:
