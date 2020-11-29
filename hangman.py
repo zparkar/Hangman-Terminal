@@ -1,82 +1,138 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep  9 21:03:17 2020
+Created on Wed Sep  9 20:43:13 2020
 
 @author: ZPARKAR2
 """
 
 from random_words import RandomWords
-from hangman import Hangman
-import time
-import pandas as pd
-import json
-from openpyxl import load_workbook
-import datetime
 
-
-
-
-input_flag=False
-input_flag2=False
-scores = {'name':[],'score':[]}
-score_counter=0
-games_played=1
-print("Welcome to Hangman!")
-
-while input_flag==False:
+class Hangman:
     
-    play=input("Would you like to play? (yes to play or any key to quit): ")
-
-
-    if play.lower()=="yes":
-        print("Great! Starting Game....")
-        time.sleep(2)
-        name = input("Please enter your name: ")
-        input_flag = True
-        while input_flag2==False:
-            game=Hangman()
-            game.choose_difficuly()
-            game.create_secret_word()
-            game.format_secret_word()
-            game.display_message()
-            game.play_game()
-            score_counter+=game.score
-            play_again=input("Would you like to play again? (yes to play or any key to quit): ")
-        
-            if play_again.lower()=="yes":
-                games_played+=1
-                continue
-            
+    def __init__(self,difficulty=1,tries=6):
+        self.difficulty=difficulty
+        self.tries=tries
+        self.secret_word=[]
+        self.picked_word=""
+        self.guessed_letters=[]
+        self.guessed_correct=0
+        self.guessed_incorrect=0
+        self.guessed_word=""
+        self.options=['Normal','Hard (score is doubled)', 'Hardest (score is tripled!)']
+        self.hangman_pics= ['''
+                         +---+
+                             |
+                             |
+                             |
+                        ===''', '''
+                         +---+
+                         O   |
+                             |
+                             |
+                        ===''', '''
+                         +---+
+                         O   |
+                         |   |
+                             |
+                        ===''', '''
+                         +---+
+                         O   |
+                        /|   |
+                             |
+                        ===''', '''
+                         +---+
+                         O   |
+                        /|\  |
+                             |
+                        ===''', '''
+                         +---+
+                         O   |
+                        /|\  |
+                        /    |
+                        ===''', '''
+                         +---+
+                         O   |
+                        /|\  |
+                        / \  |
+                        ===''']
+        self.wins=0
+        self.score=0
+    
+    def choose_difficuly(self):
+        print("\nPlease choose Difficulty:")
+        for idx, element in enumerate(self.options):
+            print("{}) {}".format(idx+1,element))
+        while True:
+            i = input("Enter number: ")
+            print(i)
+            if i.isdigit()==False or int(i) <0 or int(i) > len(self.options):
+             print("Please enter a valid number!")
+             continue
             else:
-                 scores['name'] = name.title()
-                 scores['score'] = score_counter
-                 scores['date'] = datetime.datetime.now()
-                 scores['games played'] = games_played
-                 try:
-                     wb = load_workbook("hangman_scores.xlsx")
-                     sheet = wb['Sheet1']
-                     new_row = [f"{scores['name']}", f"{scores['score']}", f"{scores['date']}",games_played]    
-                     sheet.append(new_row)
-                     wb.save("hangman_scores.xlsx")
-                 except:
-                     score_data =pd.DataFrame(scores, index=[0])
-                     score_data.to_excel("hangman_scores.xlsx",index=False)
-                 df = pd.read_excel("hangman_scores.xlsx", header=0)
-                 df = df.sort_values(by='score', ascending=False)
-                 filtered_df = df.loc[df['name'] == name.title()]
-                 max_score =filtered_df['score'].max()
-                 df = df.reset_index(drop=True)
-                 print(f"\nYour score: {score_counter}")
-                 print(f"Your highest score: {max_score}")
-                 print(f"Current Leader: {df['name'][0]}")
-                 print(f"\nScoreboard\n{df}")
-                 print("\nQuitting...")
-                 time.sleep(2)
-                 break
+                self.difficulty=int(i)
+                self.tries=int(self.tries/self.difficulty)
+                break
+
+    
+    def create_secret_word(self):
+        rw=RandomWords()
+        self.picked_word=rw.random_word().upper()
+        return self.picked_word
+    
+    def format_secret_word(self):
+        for i in self.picked_word:
+            self.secret_word.append(i)
+        return self.secret_word
+    
+    def display_message(self):
+        self.guessed_word= ["_"] * len(self.secret_word)
+        print("\nGuess the following word: \n")
+        print(*self.guessed_word, sep=' ')
+        
+    def play_game(self):
+        while self.tries>0:
+            self.guess_letter=input("Input a letter: \r")    
+            if self.guess_letter.upper() in self.guessed_letters:
+                print("You already used that letter!")
+    
+     
+            elif self.guess_letter.upper() in self.secret_word:
+                 self.guessed_letters.append(self.guess_letter.upper())
+                 for i in range(self.secret_word.count(self.guess_letter.upper())):
+                     index_letter=self.secret_word.index(self.guess_letter.upper())
+                     self.guessed_word[index_letter]=self.guess_letter.upper()
+                     self.guessed_correct+=1
+                     self.secret_word[index_letter]="-"
+                 print(*self.guessed_word, sep=' ')
+
+         
+                 if self.guessed_correct==len((self.secret_word)):
+                     print(self.picked_word)
+                     print("\nCongratulations! You won!")
+                     self.wins+=1
+                     self.scoreboard()
+                     break
+         
+                 else:
+                    continue     
+            else:
+                self.tries-=1
+                self.guessed_incorrect+=self.difficulty
+                self.guessed_letters.append(self.guess_letter.upper())
+                print(f"Incorrect. You have {self.tries} tries left ")
+                print(self.hangman_pics[self.guessed_incorrect])
+                print(*self.guessed_word, sep=' ')
+                continue
+     
+        if self.tries==0:
+            print(f"\nGame over! The word was '{self.picked_word}'. ")
+            
+    def scoreboard(self):
+        self.score = int(self.difficulty * len(self.secret_word) * self.wins)
 
         
-    else:
-       print("Quitting...")
-       time.sleep(2)
-       break
+        
+    
+            
+    
     
